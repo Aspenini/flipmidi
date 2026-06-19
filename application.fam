@@ -1,0 +1,14 @@
+# For details and more options, see documentation/AppManifests.md in flipperzero-firmware.
+
+App(
+    appid="flipmidi",
+    name="FlipMIDI",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="flipmidi_app",
+    stack_size=4 * 1024,
+    sources=["src/*.c"],
+    fap_icon="flipmidi.png",
+    fap_category="Media",
+    fap_description="Play Standard MIDI files as retro buzzer music",
+    fap_version="0.1.0",
+)
