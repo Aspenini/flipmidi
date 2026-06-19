@@ -647,7 +647,7 @@ bool midi_player_start_path(MidiPlayer* player, const char* path) {
 
     snprintf(player->path, sizeof(player->path), "%s", path);
     player->thread = furi_thread_alloc_ex(
-        "FlipMIDI Player", MIDI_PLAYER_THREAD_STACK_SIZE, midi_player_thread, player);
+        "MIDI Player", MIDI_PLAYER_THREAD_STACK_SIZE, midi_player_thread, player);
     if(!player->thread) {
         return false;
     }

@@ -1,8 +1,8 @@
-# FlipMIDI
+# MIDI Player
 
-FlipMIDI is a Flipper Zero external app that plays Standard MIDI files as retro buzzer music through the built-in speaker.
+MIDI Player is a Flipper Zero external app that plays Standard MIDI files as retro buzzer music through the built-in speaker.
 
-The Flipper speaker is a simple tone buzzer, so this is not a full General MIDI synth or soundfont player. FlipMIDI converts MIDI notes into monophonic buzzer playback and uses lightweight playback rules to make normal MIDI files degrade as cleanly as possible.
+The Flipper speaker is a simple tone buzzer, so this is not a full General MIDI synth or soundfont player. MIDI Player converts MIDI notes into monophonic buzzer playback and uses lightweight playback rules to make normal MIDI files degrade as cleanly as possible.
 
 ## Features
 
@@ -20,9 +20,9 @@ The Flipper speaker is a simple tone buzzer, so this is not a full General MIDI 
 
 ## SD Card Layout
 
-Copy MIDI files to /ext/apps_data/flipmidi/songs/.
+Copy MIDI files to /ext/apps_data/midi_player/songs/.
 
-The app creates the flipmidi and songs folders when it opens the file picker, but it does not download or generate songs on the device.
+The app creates the midi_player and songs folders when it opens the file picker, but it does not download or generate songs on the device.
 
 ## Controls
 

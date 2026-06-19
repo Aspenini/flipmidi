@@ -8,16 +8,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct FlipMidiUi {
+struct MidiPlayerUi {
     ViewPort* view_port;
     FuriMessageQueue* events;
     FuriMutex* mutex;
-    FlipMidiUiState state;
+    MidiPlayerUiState state;
 };
 
 static void midi_ui_draw_callback(Canvas* canvas, void* context) {
-    FlipMidiUi* ui = context;
-    FlipMidiUiState state;
+    MidiPlayerUi* ui = context;
+    MidiPlayerUiState state;
 
     if(furi_mutex_acquire(ui->mutex, FuriWaitForever) == FuriStatusOk) {
         state = ui->state;
@@ -30,7 +30,7 @@ static void midi_ui_draw_callback(Canvas* canvas, void* context) {
     canvas_clear(canvas);
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 2, 11, "FlipMIDI");
+    canvas_draw_str(canvas, 2, 11, "MIDI Player");
 
     canvas_set_font(canvas, FontSecondary);
     canvas_draw_str(canvas, 2, 24, state.filename);
@@ -58,32 +58,32 @@ static void midi_ui_draw_callback(Canvas* canvas, void* context) {
 }
 
 static void midi_ui_input_callback(InputEvent* event, void* context) {
-    FlipMidiUi* ui = context;
+    MidiPlayerUi* ui = context;
     if(event->key == InputKeyBack && event->type == InputTypeShort) {
-        FlipMidiUiEvent ui_event = {.type = FlipMidiUiEventBack};
+        MidiPlayerUiEvent ui_event = {.type = MidiPlayerUiEventBack};
         furi_message_queue_put(ui->events, &ui_event, 0U);
     } else if(event->key == InputKeyOk && event->type == InputTypeShort) {
-        FlipMidiUiEvent ui_event = {.type = FlipMidiUiEventPlayPause};
+        MidiPlayerUiEvent ui_event = {.type = MidiPlayerUiEventPlayPause};
         furi_message_queue_put(ui->events, &ui_event, 0U);
     } else if(
         event->key == InputKeyUp &&
         (event->type == InputTypeShort || event->type == InputTypeRepeat)) {
-        FlipMidiUiEvent ui_event = {.type = FlipMidiUiEventVolumeUp};
+        MidiPlayerUiEvent ui_event = {.type = MidiPlayerUiEventVolumeUp};
         furi_message_queue_put(ui->events, &ui_event, 0U);
     } else if(
         event->key == InputKeyDown &&
         (event->type == InputTypeShort || event->type == InputTypeRepeat)) {
-        FlipMidiUiEvent ui_event = {.type = FlipMidiUiEventVolumeDown};
+        MidiPlayerUiEvent ui_event = {.type = MidiPlayerUiEventVolumeDown};
         furi_message_queue_put(ui->events, &ui_event, 0U);
     }
 }
 
-FlipMidiUi* midi_ui_alloc(FuriMessageQueue* events) {
+MidiPlayerUi* midi_ui_alloc(FuriMessageQueue* events) {
     if(!events) {
         return NULL;
     }
 
-    FlipMidiUi* ui = malloc(sizeof(FlipMidiUi));
+    MidiPlayerUi* ui = malloc(sizeof(MidiPlayerUi));
     if(!ui) {
         return NULL;
     }
@@ -109,13 +109,13 @@ FlipMidiUi* midi_ui_alloc(FuriMessageQueue* events) {
     return ui;
 }
 
-void midi_ui_attach(FlipMidiUi* ui, Gui* gui) {
+void midi_ui_attach(MidiPlayerUi* ui, Gui* gui) {
     if(ui && gui) {
         gui_add_view_port(gui, ui->view_port, GuiLayerFullscreen);
     }
 }
 
-void midi_ui_update(FlipMidiUi* ui, const FlipMidiUiState* state) {
+void midi_ui_update(MidiPlayerUi* ui, const MidiPlayerUiState* state) {
     if(!ui || !state) {
         return;
     }
@@ -127,7 +127,7 @@ void midi_ui_update(FlipMidiUi* ui, const FlipMidiUiState* state) {
     view_port_update(ui->view_port);
 }
 
-void midi_ui_free(FlipMidiUi* ui, Gui* gui) {
+void midi_ui_free(MidiPlayerUi* ui, Gui* gui) {
     if(!ui) {
         return;
     }

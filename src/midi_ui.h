@@ -7,22 +7,22 @@
 
 typedef struct FuriMessageQueue FuriMessageQueue;
 typedef struct Gui Gui;
-typedef struct FlipMidiUi FlipMidiUi;
+typedef struct MidiPlayerUi MidiPlayerUi;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef enum {
-    FlipMidiUiEventBack = 0,
-    FlipMidiUiEventPlayPause,
-    FlipMidiUiEventVolumeUp,
-    FlipMidiUiEventVolumeDown,
-} FlipMidiUiEventType;
+    MidiPlayerUiEventBack = 0,
+    MidiPlayerUiEventPlayPause,
+    MidiPlayerUiEventVolumeUp,
+    MidiPlayerUiEventVolumeDown,
+} MidiPlayerUiEventType;
 
 typedef struct {
-    FlipMidiUiEventType type;
-} FlipMidiUiEvent;
+    MidiPlayerUiEventType type;
+} MidiPlayerUiEvent;
 
 typedef struct {
     MidiPlayerStatus status;
@@ -32,12 +32,12 @@ typedef struct {
     bool has_current_note;
     char message[64];
     char filename[40];
-} FlipMidiUiState;
+} MidiPlayerUiState;
 
-FlipMidiUi* midi_ui_alloc(FuriMessageQueue* events);
-void midi_ui_attach(FlipMidiUi* ui, Gui* gui);
-void midi_ui_update(FlipMidiUi* ui, const FlipMidiUiState* state);
-void midi_ui_free(FlipMidiUi* ui, Gui* gui);
+MidiPlayerUi* midi_ui_alloc(FuriMessageQueue* events);
+void midi_ui_attach(MidiPlayerUi* ui, Gui* gui);
+void midi_ui_update(MidiPlayerUi* ui, const MidiPlayerUiState* state);
+void midi_ui_free(MidiPlayerUi* ui, Gui* gui);
 
 #ifdef __cplusplus
 }

@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#define FLIPMIDI_DATA_DIR            "/ext/apps_data/flipmidi"
-#define FLIPMIDI_SONGS_DIR           "/ext/apps_data/flipmidi/songs"
-#define FLIPMIDI_DEFAULT_PATH        "/ext/apps_data/flipmidi/songs/example.mid"
-#define FLIPMIDI_VOLUME_STEP_PERCENT (10U)
+#define MIDI_PLAYER_APP_DATA_DIR            "/ext/apps_data/midi_player"
+#define MIDI_PLAYER_APP_SONGS_DIR           "/ext/apps_data/midi_player/songs"
+#define MIDI_PLAYER_APP_DEFAULT_PATH        "/ext/apps_data/midi_player/songs/example.mid"
+#define MIDI_PLAYER_APP_VOLUME_STEP_PERCENT (10U)
 
-static const char* flipmidi_basename(const char* path) {
+static const char* midi_player_app_basename(const char* path) {
     const char* basename = path;
     for(const char* cursor = path; *cursor != '\0'; cursor++) {
         if(*cursor == '/') {
@@ -24,10 +24,10 @@ static const char* flipmidi_basename(const char* path) {
     return basename;
 }
 
-static void flipmidi_make_ui_state(
+static void midi_player_app_make_ui_state(
     const MidiPlayerState* player_state,
     const char* song_path,
-    FlipMidiUiState* ui_state) {
+    MidiPlayerUiState* ui_state) {
     memset(ui_state, 0, sizeof(*ui_state));
     ui_state->status = player_state->status;
     ui_state->tick = player_state->tick;
@@ -35,22 +35,23 @@ static void flipmidi_make_ui_state(
     ui_state->volume_percent = player_state->volume_percent;
     ui_state->has_current_note = player_state->has_current_note;
     snprintf(ui_state->message, sizeof(ui_state->message), "%s", player_state->message);
-    snprintf(ui_state->filename, sizeof(ui_state->filename), "%s", flipmidi_basename(song_path));
+    snprintf(
+        ui_state->filename, sizeof(ui_state->filename), "%s", midi_player_app_basename(song_path));
 }
 
 static bool
-    flipmidi_select_song(Storage* storage, DialogsApp* dialogs, FuriString* selected_path) {
+    midi_player_app_select_song(Storage* storage, DialogsApp* dialogs, FuriString* selected_path) {
     if(!storage || !dialogs || !selected_path) {
         return false;
     }
 
-    storage_common_mkdir(storage, FLIPMIDI_DATA_DIR);
-    storage_common_mkdir(storage, FLIPMIDI_SONGS_DIR);
+    storage_common_mkdir(storage, MIDI_PLAYER_APP_DATA_DIR);
+    storage_common_mkdir(storage, MIDI_PLAYER_APP_SONGS_DIR);
 
-    FuriString* browser_path = furi_string_alloc_set_str(FLIPMIDI_DEFAULT_PATH);
+    FuriString* browser_path = furi_string_alloc_set_str(MIDI_PLAYER_APP_DEFAULT_PATH);
     DialogsFileBrowserOptions options;
     dialog_file_browser_set_basic_options(&options, ".mid", NULL);
-    options.base_path = FLIPMIDI_SONGS_DIR;
+    options.base_path = MIDI_PLAYER_APP_SONGS_DIR;
     options.hide_dot_files = true;
     options.skip_assets = true;
     options.hide_ext = false;
@@ -63,7 +64,7 @@ static bool
     return selected;
 }
 
-static void flipmidi_adjust_volume(MidiPlayer* player, bool increase) {
+static void midi_player_app_adjust_volume(MidiPlayer* player, bool increase) {
     if(!player) {
         return;
     }
@@ -71,12 +72,13 @@ static void flipmidi_adjust_volume(MidiPlayer* player, bool increase) {
     const MidiPlayerState state = midi_player_get_state(player);
     uint8_t volume = state.volume_percent;
     if(increase) {
-        volume = volume + FLIPMIDI_VOLUME_STEP_PERCENT > 100U ?
+        volume = volume + MIDI_PLAYER_APP_VOLUME_STEP_PERCENT > 100U ?
                      100U :
-                     volume + FLIPMIDI_VOLUME_STEP_PERCENT;
+                     volume + MIDI_PLAYER_APP_VOLUME_STEP_PERCENT;
     } else {
-        volume = volume < FLIPMIDI_VOLUME_STEP_PERCENT ? 0U :
-                                                         volume - FLIPMIDI_VOLUME_STEP_PERCENT;
+        volume = volume < MIDI_PLAYER_APP_VOLUME_STEP_PERCENT ?
+                     0U :
+                     volume - MIDI_PLAYER_APP_VOLUME_STEP_PERCENT;
     }
 
     MidiPlayerCommand command = {
@@ -86,7 +88,7 @@ static void flipmidi_adjust_volume(MidiPlayer* player, bool increase) {
     midi_player_send_command(player, &command);
 }
 
-static void flipmidi_toggle_play_pause(MidiPlayer* player) {
+static void midi_player_app_toggle_play_pause(MidiPlayer* player) {
     if(!player) {
         return;
     }
@@ -103,18 +105,18 @@ static void flipmidi_toggle_play_pause(MidiPlayer* player) {
     }
 }
 
-int32_t flipmidi_app(void* context) {
+int32_t midi_player_app(void* context) {
     (void)context;
 
-    FuriMessageQueue* ui_events = furi_message_queue_alloc(4U, sizeof(FlipMidiUiEvent));
+    FuriMessageQueue* ui_events = furi_message_queue_alloc(4U, sizeof(MidiPlayerUiEvent));
     Gui* gui = furi_record_open(RECORD_GUI);
     DialogsApp* dialogs = furi_record_open(RECORD_DIALOGS);
     Storage* storage = furi_record_open(RECORD_STORAGE);
     FuriString* selected_path = furi_string_alloc();
-    FlipMidiUi* ui = NULL;
+    MidiPlayerUi* ui = NULL;
     MidiPlayer* player = NULL;
 
-    if(!flipmidi_select_song(storage, dialogs, selected_path)) {
+    if(!midi_player_app_select_song(storage, dialogs, selected_path)) {
         goto cleanup;
     }
 
@@ -129,31 +131,31 @@ int32_t flipmidi_app(void* context) {
             MidiPlayerState state = midi_player_get_state(player);
             state.status = MidiPlayerStatusError;
             snprintf(state.message, sizeof(state.message), "%s", "Player start failed");
-            FlipMidiUiState ui_state;
-            flipmidi_make_ui_state(&state, furi_string_get_cstr(selected_path), &ui_state);
+            MidiPlayerUiState ui_state;
+            midi_player_app_make_ui_state(&state, furi_string_get_cstr(selected_path), &ui_state);
             midi_ui_update(ui, &ui_state);
         }
     }
 
     bool exit_requested = false;
     while(!exit_requested) {
-        FlipMidiUiEvent event;
+        MidiPlayerUiEvent event;
         if(furi_message_queue_get(ui_events, &event, 250U) == FuriStatusOk) {
-            if(event.type == FlipMidiUiEventBack) {
+            if(event.type == MidiPlayerUiEventBack) {
                 exit_requested = true;
-            } else if(event.type == FlipMidiUiEventPlayPause) {
-                flipmidi_toggle_play_pause(player);
-            } else if(event.type == FlipMidiUiEventVolumeUp) {
-                flipmidi_adjust_volume(player, true);
-            } else if(event.type == FlipMidiUiEventVolumeDown) {
-                flipmidi_adjust_volume(player, false);
+            } else if(event.type == MidiPlayerUiEventPlayPause) {
+                midi_player_app_toggle_play_pause(player);
+            } else if(event.type == MidiPlayerUiEventVolumeUp) {
+                midi_player_app_adjust_volume(player, true);
+            } else if(event.type == MidiPlayerUiEventVolumeDown) {
+                midi_player_app_adjust_volume(player, false);
             }
         }
 
         if(player && ui) {
             const MidiPlayerState state = midi_player_get_state(player);
-            FlipMidiUiState ui_state;
-            flipmidi_make_ui_state(&state, furi_string_get_cstr(selected_path), &ui_state);
+            MidiPlayerUiState ui_state;
+            midi_player_app_make_ui_state(&state, furi_string_get_cstr(selected_path), &ui_state);
             midi_ui_update(ui, &ui_state);
         }
     }

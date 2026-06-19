@@ -1,2 +1,2 @@
 v0.1.0:
-- Initial FlipMIDI release.
+- Initial MIDI Player release.
